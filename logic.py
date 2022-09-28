@@ -205,19 +205,11 @@ def status_bar(procents, full):
     return procents + 1
 
 # Расчёт коэффициента усиления
-def Ke0(Rn, Rk, Rg, Rb, h11, betta, x, flag=False):
+def Ke0(Rn, Rk, Rg, Rb, h11, betta, x):
     E_out = Rn / (Rn + Rk)
-    if (flag):
-        print("Е вых:", E_out)
     Ku_xx = (-betta) * (Rk / (h11 + (betta + 1) * x))
-    if (flag):
-        print("Кu хх:", Ku_xx)
     R_in = (Rb * h11 + x * Rb * (betta + 1)) / (Rb + h11 + x * (betta + 1))
-    if (flag):
-        print("R вх:", R_in)
     E_in = (R_in) / (R_in + Rg)
-    if (flag):
-        print("Е вх:", E_in)
     return Ku_xx * E_in * E_out, R_in
 
 # ===================================================================================
@@ -530,9 +522,9 @@ def start_calculate(dict_values):
     Emax = float(dict_values['E максимально допустимое'])  # E максимально допустимое
     dT = float(dict_values['Максимальное отклонение темпиратуры'])  # Максимальное отклонение темпиратуры
     fn = float(dict_values['Нижняя граничная частота'])  # Нижняя граничная частота
-    C_e_per = float(dict_values['Ёмкость эмиттерного перехода'])/(10**(-12))  # Ёмкость эмиттерного перехода
-    C_k_per = float(dict_values['Ёмкость коллекторного перехода'])/(10**(-12))  # Ёмкость коллекторного перехода
-    Cn = float(dict_values['Ёмкость нагрузки'])/(10**(-9))  # Ёмкость нагрузки
+    C_e_per = float(dict_values['Ёмкость эмиттерного перехода'])/(10**(12))  # Ёмкость эмиттерного перехода
+    C_k_per = float(dict_values['Ёмкость коллекторного перехода'])/(10**(12))  # Ёмкость коллекторного перехода
+    Cn = float(dict_values['Ёмкость нагрузки'])/(10**(9))  # Ёмкость нагрузки
     f_T = float(dict_values['Частота единичного усиления'])*(10**6)  # Частота единичного усиления
 
     # Параметры
@@ -731,7 +723,71 @@ def start_calculate(dict_values):
     dUt_2 = abs(dUt_2_orig - d_Ut)
     mask_2 = np.array([dUt_2 < d_Ut * 0.9][0], dtype='int32')
     mask_U = mask_1 * mask_2
+
+    # ========================================================================#
+    '                   Расчёт коэффициентов усиления и Re1                  '
+    Ke, R_in, R_e1 = [], [], []
+
+    # print(np.array(UA_arr)[j].shape[0])
+    # print(np.array(Ik_arr).shape[0])
+    for j in range(np.array(Ep_arr).shape[0]):
+        _Ke, _R, _Re = [], [], []
+        for k in range(np.array(UA_arr)[j].shape[0]):
+            __Ke, __R, __Re = [], [], []
+            for i in range(np.array(Ik_arr).shape[0]):
+                if (mask_U[j][k][i] == 1) and (mask_V[j][k][i] == 1):
+                    ___Ke, ___R, = [], []
+                    X = []
+                    f1 = False
+                    for x in range(0,int(R_e_arr[j][k][i]),1):
+                        ____Ke, ____R = Ke0(Rn, R_k_arr[j][k][i], Rg, Rb_arr_E25[j][k][i], h11, betta, x)
+                        if (____Ke < (-1) * K0 * 0.95) and (____Ke > (-1) * K0 * 1.05) and (____R > 0):
+                            ___Ke.append(____Ke)
+                            ___R.append(____R)
+                            X.append(x)
+                            f1 = True
+                        elif f1 == True:
+                            break
+                    __Ke.append(___Ke[int(len(___Ke) // 2)])
+                    __R.append(___R[int(len(___R) // 2)])
+                    __Re.append(X[int(len(X) // 2)])
+                else:
+                    __Ke.append(-100)
+                    __R.append(-100)
+                    __Re.append(-100)
+            _Ke.append(__Ke)
+            _R.append(__R)
+            _Re.append(__Re)
+        Ke.append(_Ke)
+        R_in.append(_R)
+        R_e1.append(_Re)
+    Ke = np.array(Ke)
+    R_in = np.array(R_in)
+    R_e1 = np.array(R_e1)
+    mask_1 = np.array([Ke < K0 * (-0.95)][0], dtype='int32')
+    mask_2 = np.array([Ke > K0 * (-1.05)][0], dtype='int32')
+    mask_Ke = mask_1 * mask_2
+    print(Ke.shape)
+    # ========================================================================#
+    '                     Расчёт емкостей конденсаторов                      '
+    tau_n = 3 / (2 * np.pi * fn)
+    R_TR = (h11 + ((Rb_arr_E25 * Rg) / (Rb_arr_E25 + Rg))) / (1 + betta) + R_e1
+    C_p1 = tau_n / (Rg + R_in)
+    C_p2 = tau_n / (R_k_arr + Rn)
+    C_e = tau_n / (((R_e_arr - R_e1) * R_TR + 0.001) / ((R_e_arr - R_e1) + R_TR))
+    # ========================================================================#
+    '                Определение верхней частоты пропускания                 '
+    print(C_e_per)
+    print(C_k_per)
+    C_in = C_e_per + C_k_per * abs(Ke * mask_Ke)
+    tau_in = C_in * ((R_in * Rg) / (R_in + Rg))
+    tau_out = (Cn + C_k_per * betta) * ((Rn * R_k_arr) / (Rn + R_k_arr))
+    tau_T = betta / (2 * np.pi * f_T * (1 + (R_e1 / (R_e1 + Rb_arr_E25)) * betta))
+    tau_v = np.sqrt(tau_in ** 2 + tau_out ** 2 + tau_T ** 2)
+    f_v = 1 / (2 * np.pi * tau_v)
+
     procents = status_bar(procents, full)
+
     dict_results = {'Ток коллектора': Ik_arr,
                       'Ток базы': Ib_arr, 'Ток эмиттера': Ie_arr, 'Допустимый тепловой ток': d_I_dop,
                       'Напряжение питания': Ep_arr, 'Напряжение коллектор-эмиттер': UA_arr,
@@ -742,7 +798,11 @@ def start_calculate(dict_values):
                       'Суммарный разброс по току': dI, 'Напряжение смещения': Ecm,
                       'Тепловой запас напряжения': dUt_2_orig, 'Нпряжение Uп': Up_orig,
                       'Сопротивление эмиттера': R_e_arr, 'Сопротивление R1': R1_arr, 'Сопротивление R2': R2_arr,
-                      'Результирующее Rб': Rb_arr_E25}
+                      'Результирующее Rб': Rb_arr_E25,'Входное сопротивление':R_in,'Сопротивление эммитера Rэ1':R_e1,
+                      'Ёмкость конеденсатора Сp1':C_p1,'Ёмкость конеденсатора Сp2':C_p2,'Временная постоянная tau_in':tau_in,
+                      'Временная постоянная tau_out':tau_out,'Временная постоянная tau_v':tau_v,'Сопротивление эммитера Rэ2':R_e_arr-R_e1,
+                      'Сопротивление R ТРэ':R_TR,'Ёмкость конеденсатора Сэ':C_e,'Ёмкость конеденсатора C_in':C_in,
+                      'Временная постоянная tau н':tau_n,'Временная постоянная tau_T':tau_T,'Верхняя частота пропускания f_v':f_v,'Рассчитанный коэффициент усиления':Ke}
     return dict_results
 
 def start_calculate_2(dict_values):

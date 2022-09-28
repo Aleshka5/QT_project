@@ -31,6 +31,10 @@ class PageWindow(QtWidgets.QMainWindow):
                          'Суммарный разброс по току', 'Напряжение смещения',
                          'Тепловой запас напряжения', 'Нпряжение Uп', 'Сопротивление эмиттера',
                          'Сопротивление R1', 'Сопротивление R2', 'Результирующее Rб']
+    page3_col1_labels = ['Входное сопротивление','Сопротивление эммитера Rэ1','Ёмкость конеденсатора Сp1','Ёмкость конеденсатора Сp2',
+                         'Временная постоянная tau_in','Временная постоянная tau_out','Временная постоянная tau_v']
+    page3_col2_labels = ['Сопротивление эммитера Rэ2','Сопротивление R ТРэ','Ёмкость конеденсатора Сэ','Ёмкость конеденсатора C_in',
+                         'Временная постоянная tau н','Временная постоянная tau_T','Верхняя частота пропускания f_v','Рассчитанный коэффициент усиления']
     dict_results = {'Ток коллектора': 0,'Ток базы': 0, 'Ток эмиттера': 0, 'Допустимый тепловой ток': 0,
                     'Напряжение питания': 0, 'Напряжение коллектор-эмиттер': 0,
                     'Напряжение по переменному току': 0, 'Сопротивление по постоянному току': 0,
@@ -40,7 +44,11 @@ class PageWindow(QtWidgets.QMainWindow):
                     'Суммарный разброс по току': 0, 'Напряжение смещения': 0,
                     'Тепловой запас напряжения': 0, 'Нпряжение Uп': 0,
                     'Сопротивление эмиттера': 0, 'Сопротивление R1': 0, 'Сопротивление R2': 0,
-                    'Результирующее Rб': 0}
+                    'Результирующее Rб': 0,'Входное сопротивление':0,'Сопротивление эммитера Rэ1':0,
+                    'Ёмкость конеденсатора Сp1':0,'Ёмкость конеденсатора Сp2':0,'Временная постоянная tau_in':0,
+                    'Временная постоянная tau_out':0,'Временная постоянная tau_v':0,'Сопротивление эммитера Rэ2':0,
+                    'Сопротивление R ТРэ':0,'Ёмкость конеденсатора Сэ':0,'Ёмкость конеденсатора C_in':0,
+                    'Временная постоянная tau н':0,'Временная постоянная tau_T':0,'Верхняя частота пропускания f_v':0,'Рассчитанный коэффициент усиления':0}
     dict_variables = {'Напряжение нагрузки': 0, 'Сопротивление нагрузки': 0,
                       'Ток нагрузки': 0, 'Сопротивление генератора': 0,
                       'Коэффициент усиления': 0, 'E максимально допустимое': 0,
@@ -61,11 +69,17 @@ class PageWindow(QtWidgets.QMainWindow):
                       'Суммарный разброс по току': 0, 'Напряжение смещения': 0,
                       'Рассчитанный тепловой запас напряжения': 0, 'Нпряжение Uп': 0,
                       'Сопротивление эмиттера': 0, 'Сопротивление R1': 0, 'Сопротивление R2': 0,
-                      'Результирующее Rб': 0}
+                      'Результирующее Rб': 0,'Входное сопротивление':0,'Сопротивление эммитера Rэ1':0,
+                      'Ёмкость конеденсатора Сp1':0,'Ёмкость конеденсатора Сp2':0,'Временная постоянная tau_in':0,
+                      'Временная постоянная tau_out':0,'Временная постоянная tau_v':0,'Сопротивление эммитера Rэ2':0,
+                      'Сопротивление R ТРэ':0,'Ёмкость конеденсатора Сэ':0,'Ёмкость конеденсатора C_in':0,
+                      'Временная постоянная tau н':0,'Временная постоянная tau_T':0,'Верхняя частота пропускания f_v':0,'Рассчитанный коэффициент усиления':0}
     page1_col1_metrics = ['В','Ом','мА','Ом','','В','гр.С','Гц','пФ','пФ']
     page1_col2_metrics = ['нФ','МГц','В','В','мА','В/град','','В','Ом']
     page2_col1_metrics = ['мА','мкА','мА','мА','В','В','В','Ом','Ом','Ом','Ом']
     page2_col2_metrics = ['','мА','мА','мА','В','В','В','Ом','Ом','Ом','Ом']
+    page3_col1_metrics = ['Ом','Ом','Ф','Ф','с','с','с']
+    page3_col2_metrics = ['Ом','Ом','Ф','Ф','с','с','Гц','']
     font_size = 15
     dict_widgets = {}
     gotoSignal = QtCore.pyqtSignal(str)
@@ -94,7 +108,6 @@ class PageWindow(QtWidgets.QMainWindow):
             msg.setWindowTitle("Информация")
             msg.setText("Выбран неподдерживаемый формат файла")
             x = msg.exec_()
-            print("ERROR")
 
 
     def saveFile(self,Window):
@@ -103,8 +116,8 @@ class PageWindow(QtWidgets.QMainWindow):
                                                    ".",
                                                    "Pickle (*.pickle)")
         self.Get_text(self)
-        print(self.dict_widgets)
-        print(self.dict_variables)
+        #print(self.dict_widgets)
+        #print(self.dict_variables)
         try:
             with open(filename,'wb') as f:
                 pickle.dump(self.dict_variables,f)
@@ -115,37 +128,73 @@ class PageWindow(QtWidgets.QMainWindow):
 
     def clear_dict(self,Window):
         self.dict_variables = {'Напряжение нагрузки': 0, 'Сопротивление нагрузки': 0,
-                               'Ток нагрузки': 0, 'Сопротивление генератора': 0,
-                               'Коэффициент усиления': 0, 'E максимально допустимое': 0,
-                               'Максимальное отклонение темпиратуры': 0,
-                               'Нижняя граничная частота': 0, 'Ёмкость эмиттерного перехода': 0,
-                               'Ёмкость коллекторного перехода': 0, 'Ёмкость нагрузки': 0,
-                               'Частота единичного усиления': 0, 'Дельта U нелинейное': 0,
-                               'Дельта U тепловое': 0, 'Тепловой ток коллектора': 0,
-                               'Температурный коэффициент': 0, 'Коэффициент усиления по току': 0,
-                               'Напряжение база-эмиттер': 0,
-                               'Входное сопротивление транзистора (h11)': 0, 'Ток коллектора': 0,
-                               'Ток базы': 0, 'Ток эммитера': 0, 'Допустимый тепловой ток': 0,
-                               'Нарпяжение пинатия Eпит': 0, 'Напряжение коллектор-эмиттер': 0,
-                               'Напряжение по переменному току': 0, 'Сопротивление по постоянному току': 0,
-                               'Сопротивление по переменному току': 0, 'Сопротивление коллектора': 0,
-                               'Первый расчёт Rб': 0, 'Коэффициент перераспределения тока коллектора': 0,
-                               'Тепловой разброс тока': 0, 'Разброс тока из-за усиления': 0,
-                               'Суммарный разброс по току': 0, 'Напряжение смещения': 0,
-                               'Рассчитанный тепловой запас напряжения': 0, 'Нпряжение Uп': 0,
-                               'Сопротивление эмиттера': 0, 'Сопротивление R1': 0, 'Сопротивление R2': 0,
-                               'Результирующее Rб': 0}
-
-        for i in self.dict_widgets:
-            if self.dict_widgets[i].text() != '0':
-                self.dict_widgets[i].clear()
+                      'Ток нагрузки': 0, 'Сопротивление генератора': 0,
+                      'Коэффициент усиления': 0, 'E максимально допустимое': 0,
+                      'Максимальное отклонение темпиратуры': 0,
+                      'Нижняя граничная частота': 0, 'Ёмкость эмиттерного перехода': 0,
+                      'Ёмкость коллекторного перехода': 0, 'Ёмкость нагрузки': 0,
+                      'Частота единичного усиления': 0, 'Дельта U нелинейное': 0,
+                      'Дельта U тепловое': 0, 'Тепловой ток коллектора': 0,
+                      'Температурный коэффициент': 0, 'Коэффициент усиления по току': 0,
+                      'Напряжение база-эмиттер': 0,
+                      'Входное сопротивление транзистора (h11)': 0, 'Ток коллектора': 0,
+                      'Ток базы': 0, 'Ток эммитера': 0, 'Допустимый тепловой ток': 0,
+                      'Напряжение питания': 0, 'Напряжение коллектор-эмиттер': 0,
+                      'Напряжение по переменному току': 0, 'Сопротивление по постоянному току': 0,
+                      'Сопротивление по переменному току': 0, 'Сопротивление коллектора': 0,
+                      'Первый расчёт Rб': 0, 'Коэффициент перераспределения тока коллектора': 0,
+                      'Тепловой разброс тока': 0, 'Разброс тока из-за усиления': 0,
+                      'Суммарный разброс по току': 0, 'Напряжение смещения': 0,
+                      'Рассчитанный тепловой запас напряжения': 0, 'Нпряжение Uп': 0,
+                      'Сопротивление эмиттера': 0, 'Сопротивление R1': 0, 'Сопротивление R2': 0,
+                      'Результирующее Rб': 0,'Входное сопротивление':0,'Сопротивление эммитера Rэ1':0,
+                      'Ёмкость конеденсатора Сp1':0,'Ёмкость конеденсатора Сp2':0,'Временная постоянная tau_in':0,
+                      'Временная постоянная tau_out':0,'Временная постоянная tau_v':0,'Сопротивление эммитера Rэ2':0,
+                      'Сопротивление R ТРэ':0,'Ёмкость конеденсатора Сэ':0,'Ёмкость конеденсатора C_in':0,
+                      'Временная постоянная tau н':0,'Временная постоянная tau_T':0,'Верхняя частота пропускания f_v':0,'Рассчитанный коэффициент усиления':0}
+        PageWindow.dict_results = {'Ток коллектора': 0, 'Ток базы': 0, 'Ток эмиттера': 0, 'Допустимый тепловой ток': 0,
+                        'Напряжение питания': 0, 'Напряжение коллектор-эмиттер': 0,
+                        'Напряжение по переменному току': 0, 'Сопротивление по постоянному току': 0,
+                        'Сопротивление по переменному току': 0, 'Сопротивление коллектора': 0,
+                        'Первый расчёт Rб': 0, 'Коэффициент перераспределения тока коллектора': 0,
+                        'Тепловой разброс тока': 0, 'Разброс тока из-за усиления': 0,
+                        'Суммарный разброс по току': 0, 'Напряжение смещения': 0,
+                        'Тепловой запас напряжения': 0, 'Нпряжение Uп': 0,
+                        'Сопротивление эмиттера': 0, 'Сопротивление R1': 0, 'Сопротивление R2': 0,
+                        'Результирующее Rб': 0, 'Входное сопротивление': 0, 'Сопротивление эммитера Rэ1': 0,
+                        'Ёмкость конеденсатора Сp1': 0, 'Ёмкость конеденсатора Сp2': 0,
+                        'Временная постоянная tau_in': 0,
+                        'Временная постоянная tau_out': 0, 'Временная постоянная tau_v': 0,
+                        'Сопротивление эммитера Rэ2': 0,
+                        'Сопротивление R ТРэ': 0, 'Ёмкость конеденсатора Сэ': 0, 'Ёмкость конеденсатора C_in': 0,
+                        'Временная постоянная tau н': 0, 'Временная постоянная tau_T': 0,
+                        'Верхняя частота пропускания f_v': 0, 'Рассчитанный коэффициент усиления': 0}
+        self.dict_results = {'Ток коллектора': 0, 'Ток базы': 0, 'Ток эмиттера': 0, 'Допустимый тепловой ток': 0,
+                        'Напряжение питания': 0, 'Напряжение коллектор-эмиттер': 0,
+                        'Напряжение по переменному току': 0, 'Сопротивление по постоянному току': 0,
+                        'Сопротивление по переменному току': 0, 'Сопротивление коллектора': 0,
+                        'Первый расчёт Rб': 0, 'Коэффициент перераспределения тока коллектора': 0,
+                        'Тепловой разброс тока': 0, 'Разброс тока из-за усиления': 0,
+                        'Суммарный разброс по току': 0, 'Напряжение смещения': 0,
+                        'Тепловой запас напряжения': 0, 'Нпряжение Uп': 0,
+                        'Сопротивление эмиттера': 0, 'Сопротивление R1': 0, 'Сопротивление R2': 0,
+                        'Результирующее Rб': 0, 'Входное сопротивление': 0, 'Сопротивление эммитера Rэ1': 0,
+                        'Ёмкость конеденсатора Сp1': 0, 'Ёмкость конеденсатора Сp2': 0,
+                        'Временная постоянная tau_in': 0,
+                        'Временная постоянная tau_out': 0, 'Временная постоянная tau_v': 0,
+                        'Сопротивление эммитера Rэ2': 0,
+                        'Сопротивление R ТРэ': 0, 'Ёмкость конеденсатора Сэ': 0, 'Ёмкость конеденсатора C_in': 0,
+                        'Временная постоянная tau н': 0, 'Временная постоянная tau_T': 0,
+                        'Верхняя частота пропускания f_v': 0, 'Рассчитанный коэффициент усиления': 0}
+        for i in self.dict_widgets.keys():
+            self.dict_widgets[i].clear()
 
     def Get_text(self,Window):
-        for i in self.dict_widgets:
+        for i in self.dict_widgets.keys():
             self.dict_variables[i] = self.dict_widgets[i].text()
 
     def Set_text(self,Window):
-        for i in self.dict_variables:
+        for i in self.dict_variables.keys():
             if (i in self.dict_widgets.keys()) and (self.dict_variables[i] != '0'):
                 self.dict_widgets[i].setText(str(self.dict_variables[i]))
 
@@ -166,23 +215,17 @@ class PageWindow(QtWidgets.QMainWindow):
         j = 2
         k = 0
         i = 63
-        print('1')
         if self.dict_widgets != {}:
-            print('2')
             for key in self.dict_widgets.keys():
-                print('3')
                 if key in PageWindow.dict_results.keys():
-                    print('4')
-                    #print(self.dict_widgets[key].text())
-                    #print(PageWindow.dict_results[key])
-                    #if self.dict_widgets[key].text() == '':
-                    print(key)
                     try:
+                        if 'tau н' in key:
+                            self.dict_widgets[key].setText(str(PageWindow.dict_results[key]))
                         if PageWindow.dict_results[key].shape != 0:
                             if key == 'Ток базы':
                                 print(f'!!!{str(PageWindow.dict_results[key].shape)}')
                                 self.dict_widgets[key].setText(str(PageWindow.dict_results[key][i]*1000_000))
-                            elif 'Сопротивление' in key or 'Rб' in key or key == 'Напряжение смещения' or key == 'Тепловой запас напряжения' or key == 'Нпряжение Uп' or key == 'Коэффициент перераспределения тока коллектора':
+                            elif 'Сопротивление' in key or 'сопротивление' in key or 'Rб' in key or key == 'Напряжение смещения' or key == 'Тепловой запас напряжения' or key == 'Нпряжение Uп' or key == 'Коэффициент перераспределения тока коллектора':
                                 print(f'!!!{str(PageWindow.dict_results[key].shape)}')
                                 self.dict_widgets[key].setText(str(PageWindow.dict_results[key][j][k][i]))
                             elif key == 'Ток коллектора' or key == 'Ток эмиттера':
@@ -197,11 +240,17 @@ class PageWindow(QtWidgets.QMainWindow):
                             elif key == 'Напряжение коллектор-эмиттер' or key == 'Напряжение по переменному току':
                                 print(f'!!!{str(PageWindow.dict_results[key].shape)}')
                                 self.dict_widgets[key].setText(str(PageWindow.dict_results[key][j][k]))
-                                print()
+                            elif 'Ёмкость' in key:
+                                self.dict_widgets[key].setText(str(PageWindow.dict_results[key][j][k][i]))
+                            elif 'Временная' in key:
+                                self.dict_widgets[key].setText(str(PageWindow.dict_results[key][j][k][i]))
+                            elif key == 'Рассчитанный коэффициент усиления':
+                                self.dict_widgets[key].setText(str(PageWindow.dict_results[key][j][k][i]))
+                            elif key == 'Верхняя частота пропускания f_v':
+                                self.dict_widgets[key].setText(str(PageWindow.dict_results[key][j][k][i]))
                     except:
-                        print('No')
-                        print(f'!!!{PageWindow.dict_results[key]}')
-        return None
+                        pass
+                        #print('No')
 
     def goto(self, name):
         self.set_in_widgets()
@@ -295,9 +344,6 @@ class Calculation(QThread):
         self.values = variables
     def run(self):
         PageWindow.dict_results = logic.start_calculate(self.values)
-        print('Начало изменений')
-        print('!!!', PageWindow.dict_results, '!!!')
-        return None
 
 class StartWindow(PageWindow):
     def __init__(self):
@@ -368,9 +414,8 @@ class FirstWindow(PageWindow):
 
     def Calc1(self, Window):
         self.Get_text(self)
-        for i,j in self.dict_variables.items():
-            print(f"{i}->{j}")
-        print('!!!',PageWindow.dict_results,'!!!')
+        #for i,j in self.dict_variables.items():
+        #    print(f"{i}->{j}")
         self.Calc_Process_instance = Calculation(self.dict_variables)
         self.Calc_Process_instance.start()
 
@@ -407,7 +452,7 @@ class FirstWindow(PageWindow):
 
             label.setText('|{:_>34}:'.format(first_column_labels[i]))
             label.setStyleSheet("QLabel{font-size: "+str(self.font_size)+"pt;}")
-            label.setFixedSize(int(10 * max_length), 20)
+            label.setFixedSize(int(10 * max_length), 25)
 
             self.dict_widgets[first_column_labels[i]] = value
 
@@ -433,7 +478,7 @@ class FirstWindow(PageWindow):
 
             label.setText('|{:_>36}:'.format(second_column_labels[i]))
             label.setStyleSheet("QLabel{font-size: "+str(self.font_size)+"pt;}")
-            label.setFixedSize(int(10.5 * max_length), 20)
+            label.setFixedSize(int(10.5 * max_length), 25)
 
             self.dict_widgets[second_column_labels[i]] = value
 
@@ -462,9 +507,8 @@ class SecondWindow(PageWindow):
         self.setCentralWidget(self.centralwidget)
         self.set_static_UI(self)
         self.Calculate_button = QPushButton('Calculate')
-        # TODO: Соединить кнопку со словарём входных виджетов
         self.Calculate_button.clicked.connect(self.Calc2)
-        self.initUI(self)
+        self.init_input_UI(self)
 
     def Calc2(self, Window):
         self.Get_text(self)
@@ -505,7 +549,7 @@ class SecondWindow(PageWindow):
 
             label.setText('|{:_>32}:'.format(first_column_labels[i]))
             label.setStyleSheet("QLabel{font-size: "+str(self.font_size)+"pt;}")
-            label.setFixedSize(int(8 * max_length), 20)
+            label.setFixedSize(int(8 * max_length), 25)
 
             self.dict_widgets[first_column_labels[i]] = value
 
@@ -532,7 +576,7 @@ class SecondWindow(PageWindow):
 
             label.setText('|{:_>43}:'.format(second_column_labels[i]))
             label.setStyleSheet("QLabel{font-size: "+str(self.font_size)+"pt;}")
-            label.setFixedSize(int(11 * max_length), 20)
+            label.setFixedSize(int(11 * max_length), 25)
 
             self.dict_widgets[second_column_labels[i]] = value
 
@@ -552,14 +596,6 @@ class SecondWindow(PageWindow):
         self.grid_layout.addLayout(self.grid0)
         self.grid_layout.addLayout(self.grid1)
 
-    def init_layout(self,Window):
-        # TODO: Дописать красивую разметку логичеких зон в таблице
-        pass
-    def initUI(self,Window):
-        # Создание сетки
-        self.init_layout(self)
-        self.init_input_UI(self)
-
 class ThirdWindow(PageWindow):
     def __init__(self):
         super().__init__()
@@ -567,16 +603,87 @@ class ThirdWindow(PageWindow):
         self.centralwidget = QWidget()
         self.setCentralWidget(self.centralwidget)
         self.set_static_UI(self)
-        self.initUI(self)
+        self.Calculate_button = QPushButton('Calculate')
+        #self.Calculate_button.clicked.connect(self.Calc2)
+        self.init_input_UI(self)
 
-    def initUI(self,ThirdWindow):
-        self.grid = QGridLayout(self.centralwidget)
-        self.setLayout(self.grid)
-        self.names = ['Bad', 'Good', 'Ok', 'Not bad']
-        self.positions = [(i, j) for i in range(2) for j in range(2)]
-        for position, name in zip(self.positions, self.names):
-            button = QPushButton(name)
-            self.grid.addWidget(button, *position)
+    def init_input_UI(self, Window):
+        button = self.Calculate_button
+        first_column_labels = self.page3_col1_labels
+        second_column_labels = self.page3_col2_labels
+        first_column_metrics = self.page3_col1_metrics
+        second_column_metrics = self.page3_col2_metrics
+        self.grid_layout = QVBoxLayout(self.centralwidget)
+
+        self.grid0 = QHBoxLayout()
+        self.grid1 = QHBoxLayout()
+
+        self.grid0_1 = QVBoxLayout()
+        self.sep = QSpacerItem(100, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.grid0_2 = QVBoxLayout()
+
+        max_length = max([len(i) for i in (first_column_labels + second_column_labels)])
+        for i in range(len(first_column_labels)):
+            gridlast = QHBoxLayout()
+            value = QLineEdit()
+            label = QLabel()
+            metric = QLabel()
+
+            value.setFont(QFont("Times", self.font_size))
+
+            metric.setText(first_column_metrics[i])
+            metric.setStyleSheet("QLabel{font-size: " + str(self.font_size) + "pt;}")
+            metric.setFixedSize(40, 20)
+
+            value.setFont(QFont("Times", self.font_size))
+
+            label.setText('|{:_>32}:'.format(first_column_labels[i]))
+            label.setStyleSheet("QLabel{font-size: " + str(self.font_size) + "pt;}")
+            label.setFixedSize(int(11 * max_length), 25)
+
+            self.dict_widgets[first_column_labels[i]] = value
+
+            gridlast.addWidget(label)
+            gridlast.addWidget(value)
+            gridlast.addWidget(metric)
+
+            self.grid0_1.addLayout(gridlast)
+
+        for i in range(len(second_column_labels)):
+            gridlast = QHBoxLayout()
+            label = QLabel()
+            value = QLineEdit()
+            metric = QLabel()
+
+            value.setFont(QFont("Times", self.font_size))
+
+            metric.setText(second_column_metrics[i])
+            metric.setStyleSheet("QLabel{font-size: " + str(self.font_size) + "pt;}")
+            metric.setFixedSize(40, 20)
+
+            value.setFont(QFont("Times", self.font_size))
+
+            label.setText('|{:_>35}:'.format(second_column_labels[i]))
+            label.setStyleSheet("QLabel{font-size: " + str(self.font_size) + "pt;}")
+            label.setFixedSize(int(12 * max_length), 25)
+
+            self.dict_widgets[second_column_labels[i]] = value
+
+            gridlast.addWidget(label)
+            gridlast.addWidget(value)
+            gridlast.addWidget(metric)
+
+            self.grid0_2.addLayout(gridlast)
+
+        self.grid0.addLayout(self.grid0_1)
+        self.grid0.addItem(self.sep)
+        self.grid0.addLayout(self.grid0_2)
+
+        self.grid1.addWidget(QLineEdit())
+        self.grid1.addWidget(button)
+
+        self.grid_layout.addLayout(self.grid0)
+        self.grid_layout.addLayout(self.grid1)
 
 
 class Window(QtWidgets.QMainWindow):
